@@ -1,0 +1,69 @@
+<div class="container mt-4">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>
+        <div class="d-flex justify-content-between align-items-center">
+          <h2 class="mb-0">User Roles Management</h2>
+          <button mat-raised-button color="primary" routerLink="/user-roles/create">
+            <mat-icon>add</mat-icon> Create New Role
+          </button>
+        </div>
+      </mat-card-title>
+      <mat-card-subtitle>Manage system user roles and permissions</mat-card-subtitle>
+    </mat-card-header>
+    
+    <mat-card-content>
+      <div class="table-responsive">
+        <!-- Loading state - Use MatProgressSpinnerModule component -->
+        @if (isLoading()) {
+          <div class="text-center py-4">
+            <mat-progress-spinner diameter="40" mode="indeterminate"></mat-progress-spinner>
+          </div>
+        }
+
+        <!-- Table -->
+        @if (!isLoading() && roles.length > 0) {
+          <table mat-table [dataSource]="roles" class="w-100">
+            
+            <ng-container matColumnDef="id">
+              <th mat-header-cell *matHeaderCellDef>ID</th>
+              <td mat-cell *matCellDef="let role">{{ role.id }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="name">
+              <th mat-header-cell *matHeaderCellDef>Role Name</th>
+              <td mat-cell *matCellDef="let role">{{ role.name }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Actions</th>
+              <td mat-cell *matCellDef="let role">
+                <button mat-icon-button color="primary" 
+                        [routerLink]="['/user-roles/edit', role.id]"
+                        matTooltip="Edit Role">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" 
+                        (click)="deleteRole(role)"
+                        matTooltip="Delete Role">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          </table>
+        }
+
+        <!-- Empty state -->
+        @if (!isLoading() && roles.length === 0) {
+          <div class="text-center py-4">
+            <mat-icon class="text-muted" style="font-size: 48px;">info</mat-icon>
+            <p class="text-muted mt-2">No roles found. Click "Create New Role" to add one.</p>
+          </div>
+        }
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

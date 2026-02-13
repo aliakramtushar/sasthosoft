@@ -1,0 +1,11 @@
+mat-card {
+  padding: 24px;
+}
+
+.gap-2 {
+  gap: 8px;
+}
+
+.w-100 {
+  width: 100%;
+}

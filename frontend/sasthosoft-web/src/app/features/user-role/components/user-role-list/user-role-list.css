@@ -1,0 +1,24 @@
+.table-responsive {
+  margin-top: 20px;
+}
+
+table {
+  width: 100%;
+}
+
+.mat-mdc-row:hover {
+  background-color: rgba(0,0,0,0.04);
+  cursor: pointer;
+}
+
+.bg-success {
+  background-color: #4caf50 !important;
+}
+
+.bg-danger {
+  background-color: #f44336 !important;
+}
+
+.text-white {
+  color: white !important;
+}

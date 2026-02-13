@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="SasthoSoft.API/SasthoSoft.API.csproj" />
+  <Project Path="SasthoSoft.Application/SasthoSoft.Application.csproj" />
+  <Project Path="SasthoSoft.Domain/SasthoSoft.Domain.csproj" />
+  <Project Path="SasthoSoft.Infrastructure/SasthoSoft.Infrastructure.csproj" />
+  <Project Path="SasthoSoft.Persistence/SasthoSoft.Persistence.csproj" />
+</Solution>

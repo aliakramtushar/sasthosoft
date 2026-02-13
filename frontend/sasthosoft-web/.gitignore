@@ -1,0 +1,25 @@
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# Angular
+dist/
+tmp/
+out-tsc/
+*.log
+
+# Testing
+coverage/
+reports/
+
+# IDE
+/.idea/
+/.vscode/
+
+# Environment files
+/environments/environment*.ts
+!/environments/environment.prod.ts
+!/environments/environment.ts.example

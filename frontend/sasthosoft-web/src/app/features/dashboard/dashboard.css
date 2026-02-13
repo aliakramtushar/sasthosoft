@@ -1,0 +1,23 @@
+.dashboard-card {
+  height: 100%;
+  transition: transform 0.2s;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-2px);
+}
+
+mat-card-header {
+  display: flex;
+  align-items: center;
+}
+
+.mat-mdc-card-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.w-100 {
+  width: 100%;
+}
