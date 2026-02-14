@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using Dapper.Contrib.Extensions;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using SasthoSoft.Domain.Entities;
@@ -16,47 +17,60 @@ public class UserRepository : IUserRepository
             ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
     }
 
-    public async Task<User?> GetByIdAsync(int id)
+    // --------------------------
+    // Basic CRUD using Dapper.Contrib
+    // --------------------------
+    public async Task<User?> GetByIdAsync(int userId)
     {
         using var connection = new SqlConnection(_connectionString);
-        var query = @"
-            SELECT u.*, ur.* 
-            FROM Users u
-            INNER JOIN UserRoles ur ON u.RoleId = ur.Id
-            WHERE u.Id = @Id";
-
-        var result = await connection.QueryAsync<User, UserRole, User>(
-            query,
-            (user, role) =>
-            {
-                user.Role = role;
-                return user;
-            },
-            new { Id = id },
-            splitOn: "Id"
-        );
-
-        return result.FirstOrDefault();
+        return await connection.GetAsync<User>(userId);
     }
 
+    public async Task<User> AddAsync(User user)
+    {
+        using var connection = new SqlConnection(_connectionString);
+        var id = await connection.InsertAsync(user); // returns generated UserID
+        user.UserID = (int)id;
+        return user;
+    }
+
+    public async Task UpdateAsync(User user)
+    {
+        using var connection = new SqlConnection(_connectionString);
+        await connection.UpdateAsync(user);
+    }
+
+    public async Task DeleteAsync(int userId)
+    {
+        using var connection = new SqlConnection(_connectionString);
+        var user = await connection.GetAsync<User>(userId);
+        if (user != null)
+        {
+            await connection.DeleteAsync(user);
+        }
+    }
+
+    // --------------------------
+    // Complex queries using plain Dapper
+    // --------------------------
     public async Task<User?> GetByUsernameAsync(string username)
     {
         using var connection = new SqlConnection(_connectionString);
         var query = @"
-            SELECT u.*, ur.* 
+            SELECT u.*, ur.*
             FROM Users u
-            INNER JOIN UserRoles ur ON u.RoleId = ur.Id
+            INNER JOIN UserRoles ur ON u.RoleID = ur.UserRoleID
             WHERE u.Username = @Username";
 
         var result = await connection.QueryAsync<User, UserRole, User>(
             query,
             (user, role) =>
             {
-                user.Role = role;
+                //user.Role = role;
                 return user;
             },
             new { Username = username },
-            splitOn: "Id"
+            splitOn: "UserRoleID"
         );
 
         return result.FirstOrDefault();
@@ -66,74 +80,39 @@ public class UserRepository : IUserRepository
     {
         using var connection = new SqlConnection(_connectionString);
         var query = @"
-            SELECT u.*, ur.* 
+            SELECT u.*, ur.*
             FROM Users u
-            INNER JOIN UserRoles ur ON u.RoleId = ur.Id";
+            INNER JOIN UserRoles ur ON u.RoleID = ur.UserRoleID";
 
-        var users = await connection.QueryAsync<User, UserRole, User>(
+        return await connection.QueryAsync<User, UserRole, User>(
             query,
             (user, role) =>
             {
-                user.Role = role;
+                //user.Role = role;
                 return user;
             },
-            splitOn: "Id"
+            splitOn: "UserRoleID"
         );
-
-        return users;
-    }
-
-    public async Task<User> AddAsync(User user)
-    {
-        using var connection = new SqlConnection(_connectionString);
-        var query = @"
-            INSERT INTO Users (Username, PasswordHash, Email, RoleId, CreatedAt)
-            OUTPUT INSERTED.Id
-            VALUES (@Username, @PasswordHash, @Email, @RoleId, @CreatedAt)";
-
-        user.Id = await connection.ExecuteScalarAsync<int>(query, user);
-        return user;
-    }
-
-    public async Task UpdateAsync(User user)
-    {
-        using var connection = new SqlConnection(_connectionString);
-        var query = @"
-            UPDATE Users 
-            SET Username = @Username,
-                PasswordHash = @PasswordHash,
-                Email = @Email,
-                RoleId = @RoleId
-            WHERE Id = @Id";
-
-        await connection.ExecuteAsync(query, user);
-    }
-
-    public async Task DeleteAsync(int id)
-    {
-        using var connection = new SqlConnection(_connectionString);
-        var query = "DELETE FROM Users WHERE Id = @Id";
-        await connection.ExecuteAsync(query, new { Id = id });
     }
 
     public async Task<IEnumerable<User>> GetUsersByRoleAsync(int roleId)
     {
         using var connection = new SqlConnection(_connectionString);
         var query = @"
-            SELECT u.*, ur.* 
+            SELECT u.*, ur.*
             FROM Users u
-            INNER JOIN UserRoles ur ON u.RoleId = ur.Id
-            WHERE u.RoleId = @RoleId";
+            INNER JOIN UserRoles ur ON u.RoleID = ur.UserRoleID
+            WHERE u.RoleID = @RoleID";
 
         return await connection.QueryAsync<User, UserRole, User>(
             query,
             (user, role) =>
             {
-                user.Role = role;
+                //user.Role = role;
                 return user;
             },
-            new { RoleId = roleId },
-            splitOn: "Id"
+            new { RoleID = roleId },
+            splitOn: "UserRoleID"
         );
     }
 
@@ -143,26 +122,29 @@ public class UserRepository : IUserRepository
         return await connection.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM Users");
     }
 
+    // --------------------------
+    // Refresh token management
+    // --------------------------
     public async Task<RefreshToken?> GetRefreshTokenAsync(string token)
     {
         using var connection = new SqlConnection(_connectionString);
         var query = @"
             SELECT rt.*, u.*, ur.*
             FROM RefreshTokens rt
-            INNER JOIN Users u ON rt.UserId = u.Id
-            INNER JOIN UserRoles ur ON u.RoleId = ur.Id
+            INNER JOIN Users u ON rt.UserID = u.UserID
+            INNER JOIN UserRoles ur ON u.RoleID = ur.UserRoleID
             WHERE rt.Token = @Token AND rt.IsRevoked = 0";
 
         var result = await connection.QueryAsync<RefreshToken, User, UserRole, RefreshToken>(
             query,
             (refreshToken, user, role) =>
             {
-                user.Role = role;
+                //user.Role = role;
                 refreshToken.User = user;
                 return refreshToken;
             },
             new { Token = token },
-            splitOn: "Id"
+            splitOn: "UserID,UserRoleID"
         );
 
         return result.FirstOrDefault();
@@ -172,8 +154,8 @@ public class UserRepository : IUserRepository
     {
         using var connection = new SqlConnection(_connectionString);
         var query = @"
-            INSERT INTO RefreshTokens (UserId, Token, ExpiryDate, IsRevoked)
-            VALUES (@UserId, @Token, @ExpiryDate, @IsRevoked)";
+            INSERT INTO RefreshTokens (UserID, Token, ExpiryDate, IsRevoked)
+            VALUES (@UserID, @Token, @ExpiryDate, @IsRevoked)";
 
         await connection.ExecuteAsync(query, refreshToken);
     }
@@ -181,7 +163,11 @@ public class UserRepository : IUserRepository
     public async Task RevokeRefreshTokenAsync(int userId)
     {
         using var connection = new SqlConnection(_connectionString);
-        var query = "UPDATE RefreshTokens SET IsRevoked = 1 WHERE UserId = @UserId AND IsRevoked = 0";
-        await connection.ExecuteAsync(query, new { UserId = userId });
+        var query = @"
+            UPDATE RefreshTokens 
+            SET IsRevoked = 1 
+            WHERE UserID = @UserID AND IsRevoked = 0";
+
+        await connection.ExecuteAsync(query, new { UserID = userId });
     }
 }

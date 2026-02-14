@@ -1,4 +1,6 @@
-﻿namespace SasthoSoft.Domain.Entities;
+﻿using Dapper.Contrib.Extensions;
+
+namespace SasthoSoft.Domain.Entities;
 
 public class RefreshToken
 {
@@ -8,6 +10,7 @@ public class RefreshToken
     public DateTime ExpiryDate { get; set; }
     public bool IsRevoked { get; set; }
 
-    // Navigation property
+
+    [Write(false)]
     public virtual User? User { get; set; }
 }

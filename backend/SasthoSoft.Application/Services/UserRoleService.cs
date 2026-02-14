@@ -36,7 +36,7 @@ public class UserRoleService : IUserRoleService
 
         var role = new UserRole
         {
-            Name = createRoleDto.Name
+            UserRoleName = createRoleDto.Name
         };
 
         var createdRole = await _userRoleRepository.AddAsync(role);
@@ -51,7 +51,7 @@ public class UserRoleService : IUserRoleService
             throw new KeyNotFoundException("Role not found");
         }
 
-        role.Name = updateRoleDto.Name;
+        role.UserRoleName = updateRoleDto.Name;
         await _userRoleRepository.UpdateAsync(role);
     }
 
@@ -64,8 +64,8 @@ public class UserRoleService : IUserRoleService
     {
         return new UserRoleDto
         {
-            Id = role.Id,
-            Name = role.Name
+            Id = role.UserRoleID,
+            Name = role.UserRoleName
         };
     }
 }

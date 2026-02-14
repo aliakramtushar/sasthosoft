@@ -1,10 +1,16 @@
-﻿namespace SasthoSoft.Domain.Entities;
+﻿using Dapper.Contrib.Extensions;
 
+namespace SasthoSoft.Domain.Entities;
+
+[Table("UserRoles")]
 public class UserRole
 {
-    public int Id { get; set; }
-    public string Name { get; set; } = string.Empty;
+    [Key]
+    public int UserRoleID { get; set; }
 
-    // Navigation property
-    public virtual ICollection<User> Users { get; set; } = new List<User>();
+    public string UserRoleName { get; set; } = string.Empty;
+
+    public string? Description { get; set; }
+
+    public bool IsActive { get; set; }
 }

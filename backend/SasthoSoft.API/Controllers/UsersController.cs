@@ -40,7 +40,7 @@ public class UsersController : ControllerBase
     public async Task<ActionResult<UserDto>> Create(CreateUserDto createUserDto)
     {
         var user = await _userService.CreateUserAsync(createUserDto);
-        return CreatedAtAction(nameof(GetById), new { id = user.Id }, user);
+        return CreatedAtAction(nameof(GetById), new { id = user.UserID }, user);
     }
 
     [Authorize(Roles = "Admin")]

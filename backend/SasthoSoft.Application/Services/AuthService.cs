@@ -28,11 +28,11 @@ public class AuthService : IAuthService
         var accessToken = _jwtService.GenerateAccessToken(user);
         var refreshToken = _jwtService.GenerateRefreshToken();
 
-        await _userRepository.RevokeRefreshTokenAsync(user.Id);
+        await _userRepository.RevokeRefreshTokenAsync(user.UserID);
 
         var refreshTokenEntity = new RefreshToken
         {
-            UserId = user.Id,
+            UserId = user.UserID,
             Token = refreshToken,
             ExpiryDate = DateTime.UtcNow.AddDays(7),
             IsRevoked = false
@@ -71,7 +71,7 @@ public class AuthService : IAuthService
 
         var newRefreshTokenEntity = new RefreshToken
         {
-            UserId = user.Id,
+            UserId = user.UserID,
             Token = newRefreshToken,
             ExpiryDate = DateTime.UtcNow.AddDays(7),
             IsRevoked = false
@@ -97,12 +97,12 @@ public class AuthService : IAuthService
     {
         return new UserDto
         {
-            Id = user.Id,
+            UserID = user.UserID,
             Username = user.Username,
             Email = user.Email,
-            RoleId = user.RoleId,
-            RoleName = user.Role?.Name ?? string.Empty,
-            CreatedAt = user.CreatedAt
+            RoleID = user.RoleID,
+            //RoleName = user.Role?.UserRoleName ?? string.Empty,
+            CreatedDate = user.CreatedDate
         };
     }
 }

@@ -32,23 +32,19 @@ public class UserService : IUserService
     {
         var existingUser = await _userRepository.GetByUsernameAsync(createUserDto.Username);
         if (existingUser != null)
-        {
             throw new InvalidOperationException("Username already exists");
-        }
 
-        var role = await _userRoleRepository.GetByIdAsync(createUserDto.RoleId);
+        var role = await _userRoleRepository.GetByIdAsync(createUserDto.RoleID);
         if (role == null)
-        {
             throw new InvalidOperationException("Role not found");
-        }
 
         var user = new User
         {
             Username = createUserDto.Username,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(createUserDto.Password),
             Email = createUserDto.Email,
-            RoleId = createUserDto.RoleId,
-            CreatedAt = DateTime.UtcNow
+            RoleID = createUserDto.RoleID,
+            CreatedDate = DateTime.UtcNow
         };
 
         var createdUser = await _userRepository.AddAsync(user);
@@ -59,29 +55,22 @@ public class UserService : IUserService
     {
         var user = await _userRepository.GetByIdAsync(id);
         if (user == null)
-        {
             throw new KeyNotFoundException("User not found");
-        }
 
         if (!string.IsNullOrEmpty(updateUserDto.Email))
-        {
             user.Email = updateUserDto.Email;
-        }
 
-        if (updateUserDto.RoleId.HasValue)
+        if (updateUserDto.RoleID.HasValue)
         {
-            var role = await _userRoleRepository.GetByIdAsync(updateUserDto.RoleId.Value);
+            var role = await _userRoleRepository.GetByIdAsync(updateUserDto.RoleID.Value);
             if (role == null)
-            {
                 throw new InvalidOperationException("Role not found");
-            }
-            user.RoleId = updateUserDto.RoleId.Value;
+
+            user.RoleID = updateUserDto.RoleID.Value;
         }
 
         if (!string.IsNullOrEmpty(updateUserDto.Password))
-        {
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(updateUserDto.Password);
-        }
 
         await _userRepository.UpdateAsync(user);
     }
@@ -91,16 +80,19 @@ public class UserService : IUserService
         await _userRepository.DeleteAsync(id);
     }
 
+    // --------------------------
+    // Mapper: User -> UserDto
+    // --------------------------
     private UserDto MapToUserDto(User user)
     {
         return new UserDto
         {
-            Id = user.Id,
+            UserID = user.UserID,
             Username = user.Username,
             Email = user.Email,
-            RoleId = user.RoleId,
-            RoleName = user.Role?.Name ?? string.Empty,
-            CreatedAt = user.CreatedAt
+            RoleID = user.RoleID,
+            //RoleName = user.Role?.UserRoleName ?? string.Empty,
+            CreatedDate = user.CreatedDate
         };
     }
 }
